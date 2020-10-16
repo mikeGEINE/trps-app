@@ -45,7 +45,7 @@ class JwtController < ApplicationController
   end
 
   def jwt_callback_url
-    params[:callbackUrl]
+    root_url # params[:callbackUrl]
   end
   helper_method :jwt_callback_url
 
@@ -88,7 +88,7 @@ class JwtController < ApplicationController
   end
 
   def logout_user
-    ValidateToken
+    ValidateTokens
       .call(bearer_token || body_bearer_token)
       .bind { |email| AcceptValue.call(email) }
       .either(

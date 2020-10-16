@@ -12,7 +12,7 @@ class GenerateTokens < BasicInteractor
     # refresh_payload = generate_refresh_payload(user)
     access_token = JWT.encode access_payload, rsa_private, 'RS256'
     # refresh_token = JWT.encode refresh_payload, rsa_private, 'RS256'
-    Success(TokensPair.new(access: access_token, refresh: refresh_token))
+    Success(TokensPair.new(access: access_token, refresh: ''))
   end
   
   private
@@ -51,7 +51,7 @@ class GenerateTokens < BasicInteractor
   # rubocop:enable Metrics/MethodLength
   
   def private_key_file
-    File.read File.join(rsa_private_dir, 'private.pem')
+    File.read File.join(rsa_private_dir, 'private.pem')   #File.read File.join(rsa_private_dir, 'private.pem')
   end
   
   class TokensPair < OpenStruct; end
