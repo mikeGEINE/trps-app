@@ -1,0 +1,114 @@
+version: "3.7"
+
+x-booking-context: &booking-context
+  context: ./booking
+  dockerfile: Dockerfile.dev
+
+x-booking-volumes: &booking-volumes
+  volumes:
+    - bundle-booking:/usr/local/bundle:cached
+    - .artifacts/:/tmp/artifacts/:cached
+    - ./booking:/app:cached
+
+x-db-env: &db-env
+  PGPASSWORD_ADMIN: postgres
+  PGPASSWORD_STANDBY: postgres
+  PGPASSWORD_SUPERUSER: postgres
+  POSTGRES_HOST_AUTH_METHOD: trust
+
+services:
+  db-booking:
+    image: postgres:10-alpine
+    environment:
+      <<: *db-env
+    volumes:
+      - dbdata-booking:/var/lib/postgresql/data:cached
+      - .artifacts/:/tmp/artifacts/:cached
+
+  db-core:
+    image: postgres:10-alpine
+    environment:
+      <<: *db-env
+    volumes:
+      - dbdata-core:/var/lib/postgresql/data:cached
+      - .artifacts/:/tmp/artifacts/:cached
+
+  idp:
+    build:
+      context: ./idp
+      dockerfile: Dockerfile.dev
+    command: ash -c "rm -f tmp/pids/server.pid && bundle exec rails s -b 0.0.0.0"
+    depends_on:
+      - db-core
+    ports:
+      - "8085:3000"
+    environment:
+      DATABASE_URL: postgresql://postgres@db-core/core_development
+      JWT_EXPIRE_TIME: 30
+      RAILS_ENV: development
+      RAILS_LOG_TO_STDOUT: 'true'
+      RAILS_SERVE_STATIC_FILES: 'true'
+      RSA_PRIVATE_DIR: /tmp/artifacts
+      RSA_PUBLIC_DIR: /tmp/artifacts
+      SECRET_KEY_BASE:
+      SERVICE_NAME: idp
+
+    volumes:
+      - bundle-idp:/usr/local/bundle:cached
+      - .artifacts/:/tmp/artifacts:cached
+      - ./idp/:/app:cached
+
+  booking:
+    <<: *booking-volumes
+    environment:
+      RSA_PUBLIC_DIR: /tmp/artifacts
+      RSA_PRIVATE_DIR: /tmp/artifacts
+      DATABASE_URL: postgresql://postgres@db-booking/booking_development
+      RAILS_ENV: development
+      RAILS_LOG_TO_STDOUT: 'true'
+      RAILS_SERVE_STATIC_FILES: 'true'
+      JWT_EXPIRE_TIME: 30
+      SECRET_KEY_BASE:
+      SSO_CALLBACK_URL: http://localhost:8080/jwt/acs
+      SSO_LOGOUT_CALLBACK_URL: http://localhost:8080/jwt/logout
+      SSO_TARGET_URL: http://localhost:8085/auth/sso/jwt
+      SERVICE_NAME: booking
+    build:
+      <<: *booking-context
+    command: ash -c "rm -f tmp/pids/server.pid && bundle exec rails s -b 0.0.0.0"
+    depends_on:
+      - db-booking
+      - idp
+    ports:
+      - "8080:3000"
+
+  core:
+    build:
+      context: ./core
+      dockerfile: Dockerfile.dev
+    command: ash -c "rm -f tmp/pids/server.pid && bundle exec rails s -b 0.0.0.0"
+    depends_on:
+      - db-core
+      - idp
+    ports:
+      - "8090:3000"
+    environment:
+      RSA_PUBLIC_DIR: /tmp/artifacts
+      RSA_PRIVATE_DIR: /tmp/artifacts
+      DATABASE_URL: postgresql://postgres@db-core/core_development
+      RAILS_ENV: development
+      RAILS_LOG_TO_STDOUT: 'true'
+      RAILS_SERVE_STATIC_FILES: 'true'
+      JWT_EXPIRE_TIME: 30
+      SECRET_KEY_BASE:
+      SERVICE_NAME: core
+    volumes:
+      - bundle-core:/usr/local/bundle:cached
+      - .artifacts/:/tmp/artifacts:cached
+
+volumes:
+  dbdata-booking:
+  bundle-booking:
+  bundle-core:
+  dbdata-core:
+  bundle-idp:
