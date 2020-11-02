@@ -3,7 +3,7 @@
 require 'dry/monads'
 require 'jwt'
 
-class ValidateTokens < BasicInteractor
+class ValidateToken < BasicInteractor
   include JwtConfigurable
   include Dry::Monads[:result, :do]
 

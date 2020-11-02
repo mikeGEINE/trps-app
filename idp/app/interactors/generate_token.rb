@@ -3,7 +3,7 @@
 require 'dry/monads'
 require 'jwt'
 
-class GenerateTokens < BasicInteractor
+class GenerateToken < BasicInteractor
   include JwtConfigurable
   
   def call(user)

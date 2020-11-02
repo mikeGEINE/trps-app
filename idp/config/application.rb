@@ -42,7 +42,7 @@ module Idp
     config.jwt = {
       service_name: config.service_name,
       access_token_ttl: ENV.fetch('JWT_EXPIRE_TIME') { 30 },
-      rsa_private_dir: './' ,# ENV.fetch('RSA_PRIVATE_DIR') { './' },
+      rsa_private_dir: ENV.fetch('RSA_PRIVATE_DIR') { './' },
       rsa_public_dir: ENV.fetch('RSA_PUBLIC_DIR') { './' }
     }
   end
