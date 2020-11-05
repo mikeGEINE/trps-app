@@ -5,17 +5,18 @@ class JwtController < ApplicationController
 
   protect_from_forgery
 
-  # before_action :validate_jwt_request
+  before_action :validate_jwt_request, :print_tokens
 
   def new
     @access_token = bearer_token || body_bearer_token
+    @tech_token = bearer_token || body_bearer_token
     if signed_in?(:user)
       user = User.find_by(id: user_id)
       return idp_make_jwt_response generate_token(user) if user.present?
       sign_out
       flash[:alert] = 'User not found!'
     end
-    redirect_to '/users/sign_in' # render_modal_form 'jwt_idp/idp/new'
+    rerender_login_form
   end
 
   def create
@@ -66,8 +67,8 @@ class JwtController < ApplicationController
     GenerateToken.call(user).value!
   end
 
-  def idp_make_jwt_response(tokens)
-    @access_token = tokens.access
+  def idp_make_jwt_response(token)
+    @access_token = token
     render template: 'jwt/post', layout: false
   end
 
@@ -88,7 +89,7 @@ class JwtController < ApplicationController
   def logout_user
     ValidateToken
       .call(bearer_token || body_bearer_token)
-      .bind { |email| AcceptValue.call(email) }
+      .bind { |token| ExtractEmail.call(token) }
       .either(
         ->(email) { User.find_by(email: email) },
         ->(_) { User.find_by(id: warden.user(:user)) }
@@ -108,7 +109,11 @@ class JwtController < ApplicationController
 
   def rerender_login_form
     @access_token = params[:token]
-    redirect_to '/users/sign_in' #render_modal_form 'jwt_idp/idp/new'
+    redirect_to "/users/sign_in?token=#{params[:token]}" #render_modal_form 'jwt_idp/idp/new'
+  end
+
+  def print_tokens
+    puts @tech_token
   end
 end
 

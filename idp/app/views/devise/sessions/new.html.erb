@@ -18,6 +18,8 @@
     </div>
   <% end %>
 
+  <%= hidden_field_tag("token", params[:token]) %>
+
   <div class="actions">
     <%= f.submit "Log in" %>
   </div>

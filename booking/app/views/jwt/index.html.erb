@@ -1,0 +1,6 @@
+<h1>Login page</h1>
+<% if cookies[:was_authorized]%>
+  <%=  link_to 'Log out', jwt_logout_request_path %>
+<% else%>
+  <%= link_to 'Log in', jwt_login_request_path %>
+<% end%>

@@ -43,7 +43,7 @@ class ValidateToken < BasicInteractor
 
     Success(decoded_token)
   rescue JWT::DecodeError => e
-    Failure(InvalidToken.new(e))
+    Failure(:invalid_token) #InvalidToken.new(e)
   end
 
   def public_key_file(iss)

@@ -12,7 +12,7 @@ class GenerateToken < BasicInteractor
     # refresh_payload = generate_refresh_payload(user)
     access_token = JWT.encode access_payload, rsa_private, 'RS256'
     # refresh_token = JWT.encode refresh_payload, rsa_private, 'RS256'
-    Success(TokensPair.new(access: access_token, refresh: ''))
+    Success(access_token)
   end
   
   private

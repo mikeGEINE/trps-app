@@ -1,12 +1,13 @@
 class ApplicationController < ActionController::Base
-  # before_action :validate_token
+  before_action :validate_token
 
   private
   def validate_token
-    ValidateToken.call(cookies[:token])
+    result = ValidateToken.call(cookies[:token])
     return if result.success?
     # Rollbar.info "Validate JWT token error: #{result.failure}"
     Rails.logger.info "Validate JWT token error: #{result.failure}"
-    redirect_to jwt_new_path
+    flash[:alert] = t(result.failure)
+    redirect_to jwt_index_path
   end
 end
