@@ -41,20 +41,13 @@ class JwtController < ApplicationController
 
   private
 
-  def was_authorized?
-    cookies[:was_authorized] == 'true'
-  end
-  helper_method :was_authorized?
-
   def idp_login_path
-    "#{ENV.fetch('SSO_TARGET_URL'){'http://localhost:8085/auth/sso/jwt'}}/login?token=#{login_token}"
+    "#{target_url}/login?token=#{login_token}&login_url=#{host_name}/jwt/login_request"
   end
-  # helper_method :idp_login_path
 
   def idp_logout_path
-    "#{ENV.fetch('SSO_TARGET_URL'){'http://localhost:8085/auth/sso/jwt'}}/logout?token=#{logout_token}"
+    "#{target_url}/logout?token=#{logout_token}&login_url=#{host_name}/jwt/login_request"
   end
-  # helper_method :idp_logout_path
 
   def login_token
     GenerateToken.call(ENV.fetch('SSO_CALLBACK_URL')).value!
@@ -62,5 +55,13 @@ class JwtController < ApplicationController
 
   def logout_token
     GenerateToken.call(ENV.fetch('SSO_LOGOUT_CALLBACK_URL')).value!
+  end
+
+  def target_url
+    ENV.fetch('SSO_TARGET_URL'){'http://localhost:8085/auth/sso/jwt'}
+  end
+
+  def host_name
+    ENV.fetch('HOST_NAME'){'http://localhost:8080'}
   end
 end

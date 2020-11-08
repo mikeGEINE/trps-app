@@ -32,6 +32,10 @@ app-db-booking-migrate:
 app-db-booking-seed:
 	docker-compose run --rm booking bundle exec rails db:seed
 
+app-db-booking-drop:
+	docker-compose run --rm idp bundle exec rails db:drop
+
+
 
 app-db-core-create:
 	docker-compose run --rm core bundle exec rails db:create
@@ -42,6 +46,9 @@ app-db-core-migrate:
 app-db-core-seed:
 	docker-compose run --rm core bundle exec rails db:seed
 
+app-db-booking-drop:
+	docker-compose run --rm idp bundle exec rails db:drop
+
 
 app-db-idp-create:
 	docker-compose run --rm idp bundle exec rails db:create
@@ -51,3 +58,6 @@ app-db-idp-migrate:
 
 app-db-idp-seed:
 	docker-compose run --rm idp bundle exec rails db:seed
+
+app-db-idp-drop:
+	docker-compose run --rm idp bundle exec rails db:drop
