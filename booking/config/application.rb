@@ -29,7 +29,7 @@ module Booking
 
     config.jwt = {
       service_name: config.service_name,
-      access_token_ttl: ENV.fetch('JWT_EXPIRE_TIME') { 30 },
+      access_token_ttl: ENV.fetch('JWT_EXPIRE_TIME', 30).to_i,
       rsa_private_dir: ENV.fetch('RSA_PRIVATE_DIR') { './' },
       rsa_public_dir: ENV.fetch('RSA_PUBLIC_DIR') { './' }
     }

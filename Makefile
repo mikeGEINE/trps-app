@@ -46,7 +46,7 @@ app-db-core-migrate:
 app-db-core-seed:
 	docker-compose run --rm core bundle exec rails db:seed
 
-app-db-booking-drop:
+app-db-core-drop:
 	docker-compose run --rm idp bundle exec rails db:drop
 
 

@@ -18,7 +18,7 @@ class GenerateToken < BasicInteractor
   def generate_payload(callback_url)
     {
       iss: service_name,
-      exp_from: access_token_ttl.to_i.minutes.since.to_i,
+      exp_from: access_token_ttl.minutes.since.to_i,
       callback_url: callback_url
     }
   end

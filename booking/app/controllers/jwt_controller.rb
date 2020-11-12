@@ -16,8 +16,8 @@ class JwtController < ApplicationController
   def acs
     ValidateToken.call(params[:token]).either(
       ->(token) {
-        cookies[:token] = {value: params[:token], expires: ActiveSupport::Duration.build(token.first['exp'])}
-        cookies[:was_authorized] = {value: true, expires: ActiveSupport::Duration.build(token.first['exp']), httponly: true}
+        cookies[:token] = {value: params[:token], expires: expiry_time(token)}
+        cookies[:was_authorized] = {value: true, expires: expiry_time(token), httponly: true}
       },
       ->(fail_msg) {
         flash[:alert] = t(fail_msg)
@@ -40,6 +40,10 @@ class JwtController < ApplicationController
   end
 
   private
+
+  def expiry_time token
+    Time.zone.at(token.first['exp']) + 1.month
+  end
 
   def idp_login_path
     "#{target_url}/login?token=#{login_token}&login_url=#{host_name}/jwt/login_request"
