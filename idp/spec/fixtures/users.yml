@@ -1,0 +1,3 @@
+test:
+  email: test@bmstu.ru
+  encrypted_password: <%= Devise::Encryptor.digest(User, 'password') %>

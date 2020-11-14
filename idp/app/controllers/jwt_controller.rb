@@ -14,7 +14,7 @@ class JwtController < ApplicationController
   def new
     @access_token = bearer_token || body_bearer_token
     session[:login_url] = params[:login_url]
-    if signed_in?(:user)
+    if user_signed_in?
       user = User.find_by(id: user_id)
       return idp_make_jwt_response generate_token(user) if user.present?
       sign_out
@@ -26,7 +26,7 @@ class JwtController < ApplicationController
   def create
     AuthenticateUser.new.call(user_params).either(
       ->(user) {
-        sign_in(:user, user.id) if ActiveModel::Type::Boolean.new.cast(user_params[:remember_me])
+        sign_in(:user, user.id) if user_params[:remember_me] == "1"
         idp_make_jwt_response generate_token(user)
       },
       ->(failure_msg_key) {

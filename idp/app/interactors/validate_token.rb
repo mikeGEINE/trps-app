@@ -19,8 +19,9 @@ class ValidateToken < BasicInteractor
 
   def get_issuer(token)
     payload = JWT.decode(token, nil, false).first
-
-    Success(payload['iss'])
+    Maybe(payload['iss'])
+    .to_result
+    .or Failure(:no_iss)
   rescue JWT::DecodeError => e
     Failure(:invalid_token)     # InvalidToken.new(e)
   end
@@ -43,7 +44,7 @@ class ValidateToken < BasicInteractor
 
     Success(decoded_token)
   rescue JWT::DecodeError => e
-    Failure(InvalidToken.new(e))
+    Failure(:invalid_token)
   end
 
   def public_key_file(iss)
