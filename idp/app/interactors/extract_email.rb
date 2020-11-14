@@ -3,7 +3,6 @@
 require 'dry/monads'
 
 class ExtractEmail < BasicInteractor
-
   def call(token)
     email = token.first["email"]
     email ? Success(email) : Failure(:no_email)

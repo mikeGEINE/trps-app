@@ -9,18 +9,23 @@ class AuthenticateUser < BasicInteractor
       ->(user){user.valid_password?(user_params[:password]) ? Success(user) : Failure(:wrong_password) },
       ->(not_found){Failure(not_found)}
     )
-
   end
 
   private
 
-  def find_user(email)
-    user = User.find_by(email: email)
+  # def find_user(email)
+  #   user = User.find_by(email: email)
 
-    if user
-      Success(user)
-    else
-      Failure(:user_not_found)
-    end
+  #   if user
+  #     Success(user)
+  #   else
+  #     Failure(:user_not_found)
+  #   end
+  # end
+
+  def find_user(email)
+    Maybe(User.find_by(email: email))
+      .to_result
+      .or Failure(:user_not_found)
   end
 end
