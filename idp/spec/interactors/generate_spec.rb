@@ -11,6 +11,10 @@ RSpec.describe GenerateToken do
   end
 
   # it 'fails without private key' do
-    
+  #   expect(GenerateToken.call(users(:test)).failure).to eq :private_key_not_found
+  # end
+
+  # it 'fails with invalid private key file' do
+  #   expect(GenerateToken.call(users(:test)).failure).to eq :RSA_error
   # end
 end

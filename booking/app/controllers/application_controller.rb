@@ -8,6 +8,7 @@ class ApplicationController < ActionController::Base
     # Rollbar.info "Validate JWT token error: #{result.failure}"
     Rails.logger.info "Validate JWT token error: #{result.failure}"
     flash[:alert] = t(result.failure)
+    cookies.delete :was_authorized
     redirect_to jwt_index_path
   end
 end

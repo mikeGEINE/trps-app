@@ -7,7 +7,7 @@ class GenerateToken < BasicInteractor
   include JwtConfigurable
   
   def call(user)
-    rsa_private = OpenSSL::PKey::RSA.new(private_key_file)
+    rsa_private = yield get_private_key
     access_payload = generate_access_payload(user)
     # refresh_payload = generate_refresh_payload(user)
     access_token = JWT.encode access_payload, rsa_private, 'RS256'
@@ -36,7 +36,6 @@ class GenerateToken < BasicInteractor
   # :reek:BooleanParameter
   def jwt_payload(user:, exp_from:, refresh: false)
     {
-      sub: 'idp-logout',
       iss: service_name,
       exp: exp_from.call,
       refresh_token: refresh
@@ -50,9 +49,14 @@ class GenerateToken < BasicInteractor
   end
   # rubocop:enable Metrics/MethodLength
   
-  def private_key_file
-    File.read File.join(rsa_private_dir, 'private.pem')   #File.read File.join(rsa_private_dir, 'private.pem')
+  def get_private_key
+    private_key = File.read File.join(rsa_private_dir, 'private.pem')
+    rsa_private = OpenSSL::PKey::RSA.new(private_key) if private_key
+
+    Success(rsa_private)
+  rescue Errno::ENOENT
+    Failure(:private_key_not_found)    # PubKeyNotFound.new
+  rescue OpenSSL::PKey::RSAError => e
+    Failure(:RSA_error)   # RSAError.new(e)
   end
-  
-  class TokensPair < OpenStruct; end
 end

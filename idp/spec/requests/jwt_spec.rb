@@ -29,7 +29,7 @@ RSpec.describe 'Jwt', type: :request do
   end
 
   it 'does not load #logout without token' do
-  get '/auth/sso/jwt/logout'
-  expect(response).to have_http_status(403)
-end
+    get '/auth/sso/jwt/logout'
+    expect(response).to have_http_status(403)
+  end
 end

@@ -1,0 +1,38 @@
+# frozen_string_literal: true
+
+require 'spec_helper'
+require 'rails_helper'
+require 'validate_token'
+
+RSpec.describe ValidateToken do
+  valid = 'eyJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJpZHAiLCJleHAiOjI2MDU0NDQ5NDQsInJlZnJlc2hfdG9rZW4iOmZhbHNlLCJlbWFpbCI6InRlc3RAYm1zdHUucnUifQ.AB-HiXUZ6w8HcODh8Geys_qLK6pKEqJE4tuujRzMC_LH1TbapReHAgI6EhhuiqWtp35tj58ijWdmzgj3TGD25-fT1vm_uqwyrTcZY1Kg9vPcy6CM6Kocojp-3TZbt36lAbVEynRDUQjMz0LhcC1Hd_yNtNgtFHqfH3OsOZKDLzvb8ck_lhYIrV40h0BIPGIP1S4PuciJWePgkpIXnk3j1tvjFnRT-jJ0vYR1cEqes67WMi-uEyDkAeNt_A9k9i-pbkVNzpbyAHZtMzLdojF5g_XRtK2sFRhqL5h15Z99DNluUlAGDkwcTl9BgzASTKNI6_QpLdMgUUc_JfWvvj0P6A'
+  expired = 'eyJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJpZHAiLCJleHAiOjYwNTQ0NDk0NCwicmVmcmVzaF90b2tlbiI6ZmFsc2UsImVtYWlsIjoidGVzdEBibXN0dS5ydSJ9.Am6WuMCEEWiUqH1C319SQtljYMpRDwe15TLr7gDKkqtWgys_lygRPCvXRzuO0lJ3LN5_QFfYd1Kksy1sZK5UqI2BdyPttBN_2ZAvWF0JcZdfxhHfKfimL96yNrnwNk2FT0BNpMBhymyeLyx14DonMrRLV_uz1xPx0sM4_nzceo_99Ns86ouE5mYc9aEW3mM4s-PcOJu2HT97ljV-Iyif8siSNvT9k2nWNx8z_42qiRk9peA5wgd7-k6qbs3XauhIHFdq5JKsK-ixipl-6iy30vp1UODQr5xyeZnhRdXmur85uByiCrFQmki8FfFWasADR0-9vmqPuOzJaFHgZ_6mVw'
+  invalid = 'eyJhbGciOiJSUI1NiJ9.eyJpc3MiOiJpZHAiLCJleHAiOjI2MDU0NDQ5NDQsInJlZnJlc2hfdG9rWiOmZhbHNlLCJlbWFpbCI6InRlc3AYm1zdHUucnUifQ.AB-HiXUZ6w8HcODh8Geys_qLK6pKEqJEtuujRzMC_LH1TbapReHAgI6EhhuiqWtp35tj58ijWdmzgj3TGD25-fT1vm_uqwyrTcZY1Kg9vPcy6CM6Kocojp-3TZbt36lAbVEynRDUQjMz0LhcC1Hd_yNtNgtFHqfH3OsOZKDLzvb8ck_lhYIrV40h0BIPGIP1S4PuciJWePgkpIXnk3j1tvjFnRT-jJ0vYR1cEqes67WMi-uEyDkAeNt_A9k9i-pbkVNzpbyAHZtMzLdojF5g_XRtK2sFRhqL5h15Z99DNluUlAGDkwcTl9BgzASKNI6_QpLdMgUUc_JfWvvj0P'
+  no_iss = 'eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjI2MDU0NDQ5NDQsInJlZnJlc2hfdG9rZW4iOmZhbHNlLCJlbWFpbCI6InRlc3RAYm1zdHUucnUifQ.eaPzMFdJb5R3-phKhlI2K0uAp1qKp-VUGQR_nvUjHqc1lux4SyDKLrYzU8_rWUuVCuH2SvBcfne_Bl1sQv4jeeKWU52pJw3vu7HIjWJlW5YJGqZCW5uI-UwD2xGGzHWsZJpyfz_26o0LPbmbPHZcYqo8hEJJTW7t_2dEHkP4An-IT7Jtc16cYFpsHL7f2Kn8eCsWzwgcUDvDufYViTZlgMh21rMswQiVRKGpoeEMFLodsjujTY-uJT6hZnLBwCSJdCTehxwZDQYg-fnJQVgeN5wbhrIeXZquLg0XW_DFbCnykUPiUnhBZ8gl1W7oMNkB1gTPMr03zja3rQcUuQ7s1w'
+  wrong_iss = 'eyJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJpZHBwcHAiLCJleHAiOjI2MDU0NDQ5NDQsInJlZnJlc2hfdG9rZW4iOmZhbHNlLCJlbWFpbCI6InRlc3RAYm1zdHUucnUifQ.LnKnhJ_d8XqlIcqJJgj072qAW4L8NvyRaiE1T_dmfoF-rGAXdmMxlvrZq42kVFmzLpQnOzdQnZ-wLuDhuxozElY02P3u2uIgjSjz7kPLwlJ3fieOzVgTNV9_nwqVg2fegtb6p05aL2H8_1GVAGdH8THiBLqDGBGFk09pcMg_rsPXSSoI2GYi-mYjaU5dl6vEKU7XXIyvG1CUjD8JTFShFG-QQPVAo31YoZ9sQ86lBLv6cLRDOrwwHzGNpv6G9uJRsq1UgFhFYid9xIGdxVPglAZwdjwyp7aSf5Yz1IDtOHP_Hn4H_STBNrwVYj2uqHcXwAX9-_tgWXcC2TTxNUEIWQ'
+  
+  it 'validates good token' do
+    expect(result(valid).success?).to eq true 
+  end
+  
+  it 'does not validate expired token' do
+    expect(result(expired).failure).to eq :invalid_token
+  end
+
+  it 'does not validate incorrect token' do
+    expect(result(invalid).failure).to eq :invalid_token
+  end
+
+  it 'does not validate token without iss' do
+    expect(result(no_iss).failure).to eq :no_iss
+  end
+
+  it 'does not validate token with wrong iss' do
+    expect(result(wrong_iss).failure).to eq :public_key_not_found
+  end
+
+  def result(token)
+    ValidateToken.call token
+  end
+end
+
