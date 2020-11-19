@@ -7,6 +7,7 @@ class GenerateToken < BasicInteractor
   include JwtConfigurable
   
   def call(user)
+    # puts ENV['RSA_PRIVATE_DIR']
     rsa_private = yield get_private_key
     access_payload = generate_access_payload(user)
     # refresh_payload = generate_refresh_payload(user)

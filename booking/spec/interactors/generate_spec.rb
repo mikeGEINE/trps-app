@@ -1,26 +1,33 @@
 # frozen_string_literal: true
 
-require 'spec_helper'
 require 'rails_helper'
 
 RSpec.describe GenerateToken do
-  it 'generates token when there is a private key and callback_url' do
-    result = GenerateToken.call 'callback_url'
-    expect(result.success?).to eq true
+  context 'with private key' do
+    it 'generates token when callback_url is present' do
+      result = GenerateToken.call 'callback_url'
+      expect(result.success?).to eq true
+    end
+
+    it 'generates token when no callback_url' do
+      result = GenerateToken.call 
+      expect(result.success?).to eq true
+    end
   end
 
-  it 'generates token when there is a private key, but no callback_url' do
-    result = GenerateToken.call 
-    expect(result.success?).to eq true
+  context 'without private key' do
+    let!(:cached_rsa_dir) { Rails.configuration.jwt[:rsa_private_dir] }
+    before do
+      Rails.configuration.jwt[:rsa_private_dir] = 'spec/fixtures/keys/not_exist'
+    end
+
+    after do
+      Rails.configuration.jwt[:rsa_private_dir] = cached_rsa_dir
+    end
+
+    it 'fails' do
+      result = GenerateToken.call 
+      expect(result.failure).to eq :private_key_not_found
+    end
   end
-
-  # it 'fails without private key' do
-  #   result = GenerateToken.call 
-  #   expect(result.failure).to eq :private_key_not_found
-  # end
-
-  # it 'fails with invalid private key' do
-  #   result = GenerateToken.call 
-  #   expect(result.failure).to eq :RSA_error
-  # end
 end
