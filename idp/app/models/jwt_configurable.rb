@@ -1,20 +1,18 @@
 # frozen_string_literal: true
 
 module JwtConfigurable
-  
-  def rsa_private_dir
-    Rails.configuration.jwt[:rsa_private_dir]
-  end
-  
-  def rsa_public_dir
-    Rails.configuration.jwt[:rsa_public_dir]
-  end
+  delegate :service_name,
+            :access_token_ttl,
+            :rsa_private_dir,
+            :rsa_public_dir,
+            to: :jwt_config
 
-  def service_name
-    Rails.configuration.jwt[:service_name]
-  end
+  private :service_name,
+          :access_token_ttl,
+          :rsa_private_dir,
+          :rsa_public_dir
 
-  def access_token_ttl
-    Rails.configuration.jwt[:access_token_ttl]
+  def jwt_config
+    @jwt_config ||= OpenStruct.new Rails.configuration.jwt
   end
 end
