@@ -26,7 +26,7 @@ class JwtController < ApplicationController
   def create
     AuthenticateUser.new.call(user_params).either(
       ->(user) {
-        sign_in(:user, user.id) if user_params[:remember_me] == "1"
+        sign_in(:user, user) if user_params[:remember_me] == "1"
         idp_make_jwt_response generate_token(user)
       },
       ->(failure_msg_key) {
