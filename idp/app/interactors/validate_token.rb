@@ -5,10 +5,11 @@ require 'jwt'
 
 class ValidateToken < BasicInteractor
   include JwtConfigurable
-  include Dry::Monads[:result, :do]
 
-  def call (token)
-    issuer = yield get_issuer(token)
+  param :token
+
+  def call
+    issuer = yield get_issuer
     public_key = yield get_public_key(issuer)
     decoded_token = yield validate(token: token, rsa_public: public_key)
 
@@ -17,7 +18,7 @@ class ValidateToken < BasicInteractor
 
   private
 
-  def get_issuer(token)
+  def get_issuer
     payload = JWT.decode(token, nil, false).first
     Maybe(payload['iss'])
     .to_result

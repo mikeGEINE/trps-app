@@ -6,16 +6,17 @@ require 'jwt'
 class GenerateToken < BasicInteractor
   include JwtConfigurable
   
-  def call(callback_url = nil)
+  param :callback_url, optional: true
+
+  def call
     rsa_private = yield get_private_key
-    access_payload = generate_payload(callback_url)
-    access_token = JWT.encode access_payload, rsa_private, 'RS256'
+    access_token = JWT.encode generate_payload, rsa_private, 'RS256'
     Success(access_token)
   end
   
   private
   
-  def generate_payload(callback_url = nil)
+  def generate_payload
     {
       iss: service_name,
       exp: access_token_ttl.minutes.since.to_i,
