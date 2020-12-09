@@ -7,8 +7,8 @@ class AuthenticateUser < BasicInteractor
 
   def call
     find_user(user_params[:email]).either(
-      ->(user){user.valid_password?(user_params[:password]) ? Success(user) : Failure(:wrong_password) },
-      ->(not_found){Failure(not_found)}
+      ->(user) { user.valid_password?(user_params[:password]) ? Success(user) : Failure(:wrong_password) },
+      ->(not_found) { Failure(not_found) }
     )
   end
 

@@ -1,22 +1,23 @@
-# frozen_string_literal : true
+# frozen_string_literal: true
 
 class JwtController < ApplicationController
   respond_to :html, :json
 
   protect_from_forgery
 
+  # Check token before actions
   before_action :validate_jwt_request, except: %i[index]
 
-  def index
-    
-  end
-  
+  def index; end
+
   def new
-    @access_token = bearer_token || body_bearer_token
+    # Saving login request url for repeating request after registration
     session[:login_url] = params[:login_url]
     if user_signed_in?
       user = User.find_by(id: user_id)
       return idp_make_jwt_response generate_token(user) if user.present?
+
+      # If the user has not been found
       sign_out
       flash[:alert] = 'User not found!'
     end
@@ -26,7 +27,7 @@ class JwtController < ApplicationController
   def create
     AuthenticateUser.call(user_params).either(
       ->(user) {
-        sign_in(:user, user) if user_params[:remember_me] == "1"
+        sign_in(:user, user) if user_params[:remember_me] == '1'
         idp_make_jwt_response generate_token(user)
       },
       ->(failure_msg_key) {
@@ -36,7 +37,6 @@ class JwtController < ApplicationController
     )
   end
 
-  # приходит токен д/аутентикации запроса, который подписан сервисом-клиентом
   def logout
     user = logout_user
     sign_out
@@ -45,6 +45,7 @@ class JwtController < ApplicationController
 
   private
 
+  # Select only params of user from request for authentication
   def user_params
     params.require(:user).permit(:email, :password, :remember_me)
   end
@@ -54,6 +55,7 @@ class JwtController < ApplicationController
   end
   helper_method :login_url
 
+  # Extracting callback url from a validated token
   def jwt_callback_url
     ValidateToken.call(bearer_token || body_bearer_token).value!.first['callback_url']
   end
@@ -67,7 +69,7 @@ class JwtController < ApplicationController
   def validate_jwt_request
     result = ValidateToken.call(bearer_token || body_bearer_token)
     return if result.success?
-    # Rollbar.info "Validate JWT token error: #{result.failure}"
+
     Rails.logger.info "Validate JWT token error: #{result.failure}"
     head :forbidden
   end
@@ -86,15 +88,18 @@ class JwtController < ApplicationController
     render template: 'jwt/post', layout: false
   end
 
+  # Extract token from request headers
   def bearer_token
     match = request.authorization&.match(/^Bearer (.*)/)
     match.present? ? match[1] : nil
   end
 
+  # Extract token from request params
   def body_bearer_token
     params[:token]
   end
 
+  # Find the user, who is to be logged out
   def logout_user
     ValidateToken
       .call(bearer_token || body_bearer_token)
@@ -114,7 +119,6 @@ class JwtController < ApplicationController
 
   def rerender_login_form
     @access_token = params[:token]
-    redirect_to "/users/sign_in?token=#{params[:token]}" #render_modal_form 'jwt_idp/idp/new'
+    redirect_to "/users/sign_in?token=#{params[:token]}" 
   end
 end
-

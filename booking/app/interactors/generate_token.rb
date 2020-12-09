@@ -5,7 +5,7 @@ require 'jwt'
 
 class GenerateToken < BasicInteractor
   include JwtConfigurable
-  
+
   param :callback_url, optional: true
 
   def call
@@ -13,9 +13,9 @@ class GenerateToken < BasicInteractor
     access_token = JWT.encode generate_payload, rsa_private, 'RS256'
     Success(access_token)
   end
-  
+
   private
-  
+
   def generate_payload
     {
       iss: service_name,
@@ -30,7 +30,7 @@ class GenerateToken < BasicInteractor
 
     Success(rsa_private)
   rescue Errno::ENOENT
-    Failure(:private_key_not_found)    # PubKeyNotFound.new
+    Failure(:private_key_not_found) # PubKeyNotFound.new
   rescue OpenSSL::PKey::RSAError => e
     Failure(:RSA_error)   # RSAError.new(e)
   end

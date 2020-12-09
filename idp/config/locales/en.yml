@@ -31,3 +31,5 @@
 
 en:
   hello: "Hello world"
+  user_not_found: "User not found!"
+  wrong_password: "Wrong password!"

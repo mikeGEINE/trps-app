@@ -7,7 +7,7 @@ require 'authenticate_user'
 RSpec.describe AuthenticateUser do
   fixtures :users
   it 'authenticates correct data' do
-    expect(authenticate('test@bmstu.ru', 'password').success?).to eq true
+    expect(authenticate('test@bmstu.ru', 'password').success).to eq users(:test)
   end
 
   it 'fails with wrong password' do
@@ -19,6 +19,6 @@ RSpec.describe AuthenticateUser do
   end
 
   def authenticate(email, password)
-    AuthenticateUser.call({email: email, password: password})
+    AuthenticateUser.call({ email: email, password: password })
   end
 end

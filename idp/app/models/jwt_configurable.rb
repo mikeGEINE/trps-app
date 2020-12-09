@@ -2,10 +2,10 @@
 
 module JwtConfigurable
   delegate :service_name,
-            :access_token_ttl,
-            :rsa_private_dir,
-            :rsa_public_dir,
-            to: :jwt_config
+           :access_token_ttl,
+           :rsa_private_dir,
+           :rsa_public_dir,
+           to: :jwt_config
 
   private :service_name,
           :access_token_ttl,

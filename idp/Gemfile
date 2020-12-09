@@ -64,6 +64,7 @@ gem "openssl", "~> 2.2"
 
 gem "tzinfo-data", "~> 1.2020"
 
-
 gem "simple_form", "~> 5.0"
+
+gem 'rails-i18n'
 

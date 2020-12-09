@@ -4,9 +4,9 @@ require 'rails_helper'
 
 RSpec.describe 'Jwt', type: :request do
   include_context 'tokens'
-  
-  it 'shows index in any case' do
-    get jwt_index_path
+
+  it 'shows root in any case' do
+    get '/'
     expect(response).to have_http_status(:ok)
   end
 
@@ -21,11 +21,16 @@ RSpec.describe 'Jwt', type: :request do
       get '/auth/sso/jwt/login'
       expect(response).to have_http_status(:forbidden)
     end
+
+    it 'does not load #new with invalid token' do
+      get '/auth/sso/jwt/login', params: { token: invalid }
+      expect(response).to have_http_status(:forbidden)
+    end
   end
 
   describe 'GET /auth/sso/jwt/logout' do
     it 'logouts user with token' do
-      get '/auth/sso/jwt/logout', params: {token: logout}
+      get '/auth/sso/jwt/logout', params: { token: logout }
       expect(response).to have_http_status(:ok)
     end
 
@@ -33,25 +38,39 @@ RSpec.describe 'Jwt', type: :request do
       get '/auth/sso/jwt/logout'
       expect(response).to have_http_status(:forbidden)
     end
+
+    it 'does not load #logout with invalid token' do
+      get '/auth/sso/jwt/logout', params: { token: invalid }
+      expect(response).to have_http_status(:forbidden)
+    end
   end
 
   describe 'POST /auth/sso/jwt/login' do
     it 'logins user with correct input' do
-      post '/auth/sso/jwt/login', params: { token: login, user: correct_user, commit: "Log in"}
+      post '/auth/sso/jwt/login', params: { token: login, user: correct_user, commit: 'Log in' }
       expect(response).to have_http_status(:ok)
     end
 
     it 'rerenders login form for user with incorrect login' do
-      post '/auth/sso/jwt/login', params: { token: login, user: incorrect_login, commit: "Log in"}
+      post '/auth/sso/jwt/login', params: { token: login, user: incorrect_login, commit: 'Log in' }
       follow_redirect!
       expect(response).to have_http_status(:ok)
     end
 
     it 'rerenders login form for user with incorrect password' do
-      post '/auth/sso/jwt/login', params: { token: login, user: incorrect_password, commit: "Log in"}
+      post '/auth/sso/jwt/login', params: { token: login, user: incorrect_password, commit: 'Log in' }
       follow_redirect!
       expect(response).to have_http_status(:ok)
     end
-  end
 
+    it 'does not load without token' do
+      get '/auth/sso/jwt/logout', params: { user: correct_user, commit: 'Log in' }
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it 'does not load with invalid token' do
+      get '/auth/sso/jwt/logout', params: { token: invalid, user: correct_user, commit: 'Log in' }
+      expect(response).to have_http_status(:forbidden)
+    end
+  end
 end

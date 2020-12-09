@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'boot'
 
 require 'rails/all'
@@ -25,13 +27,13 @@ module Booking
       end
     end
 
-    config.service_name = ENV.fetch('SERVICE_NAME') { 'booking' }
+    config.service_name = ENV.fetch('SERVICE_NAME', 'booking')
 
     config.jwt = {
       service_name: config.service_name,
       access_token_ttl: ENV.fetch('JWT_EXPIRE_TIME', 30).to_i,
-      rsa_private_dir: ENV.fetch('RSA_PRIVATE_DIR') { './' },
-      rsa_public_dir: ENV.fetch('RSA_PUBLIC_DIR') { './' }
+      rsa_private_dir: ENV.fetch('RSA_PRIVATE_DIR', './'),
+      rsa_public_dir: ENV.fetch('RSA_PUBLIC_DIR', './')
     }
   end
 end

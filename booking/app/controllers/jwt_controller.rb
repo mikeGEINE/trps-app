@@ -1,10 +1,10 @@
+# frozen_string_literal: true
+
 class JwtController < ApplicationController
   # skip_before_action :validate_token
   skip_before_action :verify_authenticity_token, :validate_token
-  def index
-    
-  end
-  
+  def index; end
+
   def login_request
     redirect_to idp_login_path
   end
@@ -12,12 +12,12 @@ class JwtController < ApplicationController
   def logout_request
     redirect_to idp_logout_path
   end
-  
+
   def acs
     ValidateToken.call(params[:token]).either(
       ->(token) {
-        cookies[:token] = {value: params[:token], expires: expiry_time(token)}
-        cookies[:was_authorized] = {value: true, expires: expiry_time(token), httponly: true}
+        cookies[:token] = { value: params[:token], expires: expiry_time(token) }
+        cookies[:was_authorized] = { value: true, expires: expiry_time(token), httponly: true }
       },
       ->(fail_msg) {
         flash[:alert] = t(fail_msg)
@@ -32,7 +32,7 @@ class JwtController < ApplicationController
         cookies.delete :token
         cookies.delete :was_authorized
       },
-      ->(fail_msg){
+      ->(fail_msg) {
         flash[:alert] = t(fail_msg)
       }
     )
@@ -41,7 +41,7 @@ class JwtController < ApplicationController
 
   private
 
-  def expiry_time token
+  def expiry_time(token)
     Time.zone.at(token.first['exp']) + 1.month
   end
 
@@ -62,10 +62,10 @@ class JwtController < ApplicationController
   end
 
   def target_url
-    ENV.fetch('SSO_TARGET_URL'){'http://localhost:8085/auth/sso/jwt'}
+    ENV.fetch('SSO_TARGET_URL', 'http://localhost:8085/auth/sso/jwt')
   end
 
   def host_name
-    ENV.fetch('HOST_NAME'){'http://localhost:8080'}
+    ENV.fetch('HOST_NAME', 'http://localhost:8080')
   end
 end

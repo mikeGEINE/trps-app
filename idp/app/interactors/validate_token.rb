@@ -21,10 +21,10 @@ class ValidateToken < BasicInteractor
   def get_issuer
     payload = JWT.decode(token, nil, false).first
     Maybe(payload['iss'])
-    .to_result
-    .or Failure(:no_iss)
+      .to_result
+      .or Failure(:no_iss)
   rescue JWT::DecodeError => e
-    Failure(:invalid_token)     # InvalidToken.new(e)
+    Failure(:invalid_token) # InvalidToken.new(e)
   end
 
   def get_public_key(issuer)
@@ -35,26 +35,20 @@ class ValidateToken < BasicInteractor
 
     Success(rsa_public)
   rescue Errno::ENOENT
-    Failure(:public_key_not_found)    # PubKeyNotFound.new
-  rescue OpenSSL::PKey::RSAError => e
-    Failure(:RSA_error)   # RSAError.new(e)
+    Failure(:public_key_not_found)
+  rescue OpenSSL::PKey::RSAError
+    Failure(:RSA_error)
   end
 
   def validate(token:, rsa_public:)
     decoded_token = JWT.decode(token, rsa_public, true, algorithm: 'RS256')
 
     Success(decoded_token)
-  rescue JWT::DecodeError => e
+  rescue JWT::DecodeError
     Failure(:invalid_token)
   end
 
   def public_key_file(iss)
     File.join(rsa_public_dir, "#{iss}.pem")
   end
-
-  # class PubKeyNotFound < StandardError; end
-
-  # class RSAError < StandardError; end
-
-  # class InvalidToken < StandardError; end
 end
