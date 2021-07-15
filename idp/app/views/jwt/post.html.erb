@@ -7,7 +7,7 @@
   <body onload="document.forms[0].submit();" style="visibility:hidden;">
     <%= form_tag(jwt_callback_url) do %>
       <%# <%= hidden_field_tag("token", @access_token) %>
-      <%= hidden_field_tag("access_token", @access_token) %>
+      <%= hidden_field_tag("token", @access_token) %>
       <%= hidden_field_tag("return_url", return_url) %>
       <%= submit_tag "Submit" %>
     <% end %>

@@ -4,8 +4,8 @@
 #     https://www.atlassian.com/git/tutorials/saving-changes/gitignore
 
 # Node artifact files
-node_modules/
-dist/
+*/node_modules/
+*/dist/
 
 # Compiled Java class files
 *.class
@@ -80,6 +80,9 @@ Thumbs.db
 */yarn-debug.log*
 */.yarn-integrity
 
+
+# IDE, OS & editor settings
+*.code-workspace
 **/.vscode
 */.artifacts
 */.idea/
@@ -103,4 +106,4 @@ Thumbs.db
 */public/500.html
 
 # RSA private & public keys
-*.pem
+private.pem

@@ -1,28 +1,34 @@
-# frozen_string_literal : true
+# frozen_string_literal: true
 
 class JwtController < ApplicationController
   respond_to :html, :json
 
   protect_from_forgery
 
-  # before_action :validate_jwt_request
+  # Check token before actions
+  before_action :validate_jwt_request, except: %i[index]
+
+  def index; end
 
   def new
-    @access_token = bearer_token || body_bearer_token
-    if signed_in?(:user)
+    # Saving login request url for repeating request after registration
+    session[:login_url] = params[:login_url]
+    if user_signed_in?
       user = User.find_by(id: user_id)
-      return idp_make_jwt_response generate_tokens(user) if user.present?
+      return idp_make_jwt_response generate_token(user) if user.present?
+
+      # If the user has not been found
       sign_out
       flash[:alert] = 'User not found!'
     end
-    redirect_to '/users/sign_in' # render_modal_form 'jwt_idp/idp/new'
+    rerender_login_form
   end
 
   def create
-    AuthenticateUser.new.call(user_params).either(
+    AuthenticateUser.call(user_params).either(
       ->(user) {
-        sign_in(:user, user.id) if ActiveModel::Type::Boolean.new.cast(user_params[:remember_me])
-        idp_make_jwt_response generate_tokens(user)
+        sign_in(:user, user) if user_params[:remember_me] == '1'
+        idp_make_jwt_response generate_token(user)
       },
       ->(failure_msg_key) {
         flash[:alert] = t(failure_msg_key)
@@ -31,7 +37,6 @@ class JwtController < ApplicationController
     )
   end
 
-  # приходит токен д/аутентикации запроса, который подписан сервисом-клиентом
   def logout
     user = logout_user
     sign_out
@@ -40,12 +45,19 @@ class JwtController < ApplicationController
 
   private
 
+  # Select only params of user from request for authentication
   def user_params
     params.require(:user).permit(:email, :password, :remember_me)
   end
 
+  def login_url
+    session[:login_url]
+  end
+  helper_method :login_url
+
+  # Extracting callback url from a validated token
   def jwt_callback_url
-    params[:callbackUrl]
+    ValidateToken.call(bearer_token || body_bearer_token).value!.first['callback_url']
   end
   helper_method :jwt_callback_url
 
@@ -55,21 +67,19 @@ class JwtController < ApplicationController
   helper_method :return_url
 
   def validate_jwt_request
-    result = ValidateToken.new.call(bearer_token || body_bearer_token)
+    result = ValidateToken.call(bearer_token || body_bearer_token)
     return if result.success?
-    # Rollbar.info "Validate JWT token error: #{result.failure}"
+
     Rails.logger.info "Validate JWT token error: #{result.failure}"
     head :forbidden
   end
 
-  def generate_tokens(user)
-    GenerateTokens.new.call(user).fmap { |tokens|
-      tokens
-    }.value!
+  def generate_token(user)
+    GenerateToken.call(user).value!
   end
 
-  def idp_make_jwt_response(tokens)
-    @access_token = tokens.access
+  def idp_make_jwt_response(token)
+    @access_token = token
     render template: 'jwt/post', layout: false
   end
 
@@ -78,19 +88,22 @@ class JwtController < ApplicationController
     render template: 'jwt/post', layout: false
   end
 
+  # Extract token from request headers
   def bearer_token
     match = request.authorization&.match(/^Bearer (.*)/)
     match.present? ? match[1] : nil
   end
 
+  # Extract token from request params
   def body_bearer_token
     params[:token]
   end
 
+  # Find the user, who is to be logged out
   def logout_user
     ValidateToken
       .call(bearer_token || body_bearer_token)
-      .bind { |email| AcceptValue.call(email) }
+      .bind { |token| ExtractEmail.call(token) }
       .either(
         ->(email) { User.find_by(email: email) },
         ->(_) { User.find_by(id: warden.user(:user)) }
@@ -104,13 +117,8 @@ class JwtController < ApplicationController
     end
   end
 
-  # def prev_refresh_token
-  #   @prev_refresh_token ||= params[:prev_refresh_token]
-  # end
-
   def rerender_login_form
     @access_token = params[:token]
-    redirect_to '/users/sign_in' #render_modal_form 'jwt_idp/idp/new'
+    redirect_to "/users/sign_in?token=#{params[:token]}" 
   end
 end
-
